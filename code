@@ -1,0 +1,19 @@
+#revenue was casted as numeric because it's required for round() function to work if you want to specify decimal places
+#rtrim was used to delete blank space after the right most characters (since to_char returns value with extra white spaces)
+
+SELECT product_line, month, warehouse, round(total*(1-payment_fee)::numeric,2) as net_revenue
+FROM (select product_line, rtrim(to_char(date, 'Month')) as month, warehouse,payment_fee, client_type, sum(total) as total
+	 from sales
+	 group by 1,2,3,4,5 )a
+where client_type='Wholesale'
+group by 1,2,3,4 
+order by product_line , month , net_revenue desc 
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+select warehouse, count(order_number) as Total_Orders,
+sum(case when client_type='Retail' then 1 else 0 end)*100/count(order_number) as Retail_Orders_percent,
+sum(case when client_type='Wholesale' then 1 else 0 end)*100/count(order_number) as Wholesale_Orders_percent,
+sum(quantity) as Total_products,round(sum(total)) as Revenue, round(sum(total)/count(order_number)) as Average_order_value
+from sales
+group by 1 
